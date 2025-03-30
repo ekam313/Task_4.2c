@@ -2,7 +2,6 @@
 #include <BH1750.h>
 
 #define SWITCH_PIN 2     // ON/OFF switch
-#define LIGHT_SENSOR_PIN A0 // Analog light sensor pin
 #define LED1_PIN 4       // LED controlled by switch
 #define LED2_PIN 5       // LED controlled by light sensor
 #define LIGHT_THRESHOLD 100  // Adjust this threshold based on ambient light
