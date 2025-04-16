@@ -38,8 +38,8 @@ void setup() {
   pinMode(LIGHT_OUT_PIN, OUTPUT);
   pinMode(LIGHT_INT_PIN, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), handleSwitchToggle, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(LIGHT_INT_PIN), handleLightInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), handleSwitchToggle, CHANGE); //here i used CHANGE so when the position of switch change the led toggle(ON/OFF) according to it
+  attachInterrupt(digitalPinToInterrupt(LIGHT_INT_PIN), handleLightInterrupt, RISING); // here RISING is used to make changes of LED2(ON/OFF) only when lux is above threshold
 
   Serial.println("System Ready. Monitoring...");
 }
@@ -59,5 +59,3 @@ void loop() {
 
   delay(1000);
 }
-
-
