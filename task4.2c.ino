@@ -1,60 +1,63 @@
 #include <Wire.h>
 #include <BH1750.h>
 
-#define SWITCH_PIN 2     // ON/OFF switch
-#define LED1_PIN 4       // LED controlled by switch
-#define LED2_PIN 5       // LED controlled by light sensor
-#define LIGHT_THRESHOLD 100  // Adjust this threshold based on ambient light
+// Pin Definitions
+#define SWITCH_PIN 2           // Slider switch (middle pin)
+#define LED1_PIN 4             // Toggled by slider switch
+#define LED2_PIN 5             // Toggled by light sensor interrupt
+#define LIGHT_OUT_PIN 8        // Output pin to simulate light interrupt
+#define LIGHT_INT_PIN 3        // Connected to LIGHT_OUT_PIN via resistor
+#define LIGHT_THRESHOLD 1000   // Lux threshold
 
 BH1750 lightMeter;
-volatile bool led1State = false; // LED1 toggle state
-volatile bool led2State = false; // LED2 toggle state
+volatile bool led1State = false;
+volatile bool led2State = false;
 
-// Interrupt Service Routine for ON/OFF switch
+// ISR for slider switch
 void handleSwitchToggle() {
-    led1State = !led1State;
-    digitalWrite(LED1_PIN, led1State);
-    Serial.println("Switch Interrupt: LED1 Toggled");
+  led1State = !led1State;
+  digitalWrite(LED1_PIN, led1State);
+  Serial.println("Slider Interrupt: LED1 Toggled");
 }
 
-// Interrupt check for light sensor
-void checkLightSensor() {
-    float lux = lightMeter.readLightLevel();
-    Serial.print("Light Intensity: ");
-    Serial.print(lux);
-    Serial.println(" lx");
-
-    if (lux < LIGHT_THRESHOLD) {
-        if (!led2State) {
-            led2State = true;
-            digitalWrite(LED2_PIN, HIGH);
-            Serial.println("Light Sensor: LED2 ON (Dark)");
-        }
-    } else {
-        if (led2State) {
-            led2State = false;
-            digitalWrite(LED2_PIN, LOW);
-            Serial.println("Light Sensor: LED2 OFF (Bright)");
-        }
-    }
+// ISR triggered via light intensity condition (simulated interrupt)
+void handleLightInterrupt() {
+  led2State = !led2State;
+  digitalWrite(LED2_PIN, led2State);
+  Serial.println("Simulated Light Interrupt: LED2 Toggled");
 }
 
 void setup() {
-    Serial.begin(115200);
-    Wire.begin();
-    lightMeter.begin();
+  Serial.begin(115200);
+  Wire.begin();
+  lightMeter.begin();
 
-    pinMode(SWITCH_PIN, INPUT_PULLUP);
-    pinMode(LED1_PIN, OUTPUT);
-    pinMode(LED2_PIN, OUTPUT);
+  pinMode(SWITCH_PIN, INPUT_PULLUP);
+  pinMode(LED1_PIN, OUTPUT);
+  pinMode(LED2_PIN, OUTPUT);
+  pinMode(LIGHT_OUT_PIN, OUTPUT);
+  pinMode(LIGHT_INT_PIN, INPUT_PULLUP);
 
-    // Attach interrupt for switch
-    attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), handleSwitchToggle, FALLING);
+  attachInterrupt(digitalPinToInterrupt(SWITCH_PIN), handleSwitchToggle, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(LIGHT_INT_PIN), handleLightInterrupt, RISING);
+
+  Serial.println("System Ready. Monitoring...");
 }
 
 void loop() {
-    checkLightSensor(); // Continuously check light sensor
-    delay(5000);
+  float lux = lightMeter.readLightLevel();
+  Serial.print("Light Intensity: ");
+  Serial.print(lux);
+  Serial.println(" lx");
+
+  // Simulate interrupt via digital output
+  if (lux > LIGHT_THRESHOLD) {
+    digitalWrite(LIGHT_OUT_PIN, HIGH); // Trigger interrupt
+  } else {
+    digitalWrite(LIGHT_OUT_PIN, LOW);  // Clear signal
+  }
+
+  delay(1000);
 }
 
 
